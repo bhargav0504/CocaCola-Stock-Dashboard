@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KO – Coca-Cola Stock Analytics Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- Chart.js + annotation plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+
+  <!-- Pre-generated data (created by generate_data.py) -->
+  <script src="data/dashboard_data.js"></script>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div id="loading">
+  <div class="spinner"></div>
+  <p style="color:#7b82a0;font-size:0.85rem">Loading dashboard…</p>
+</div>
+
+<!-- ── Header ── -->
+<header>
+  <div class="header-brand">
+    <div class="logo-wave">KO</div>
+    <div>
+      <h1>Coca-Cola Stock Analytics</h1>
+      <span>The Coca-Cola Company &nbsp;·&nbsp; NYSE: KO</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <span id="data-range-tag"></span>
+    <span id="last-updated-tag"></span>
+  </div>
+</header>
+
+<!-- ── Main ── -->
+<main>
+
+  <!-- Stat Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Last Close</div>
+      <div class="stat-value" id="stat-price">—</div>
+      <div class="stat-sub">USD per share</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Day Change</div>
+      <div class="stat-value" id="stat-change" style="font-size:1.15rem">—</div>
+      <div class="stat-sub">vs previous close</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">YTD Return</div>
+      <div class="stat-value" id="stat-ytd">—</div>
+      <div class="stat-sub">year-to-date</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Return (5Y)</div>
+      <div class="stat-value" id="stat-total-ret">—</div>
+      <div class="stat-sub">since Jan 2020</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">52-Week High</div>
+      <div class="stat-value" id="stat-hi52" style="color:var(--green)">—</div>
+      <div class="stat-sub">trailing 52 weeks</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">52-Week Low</div>
+      <div class="stat-value" id="stat-lo52" style="color:var(--red)">—</div>
+      <div class="stat-sub">trailing 52 weeks</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg Volume (10d)</div>
+      <div class="stat-value" id="stat-vol">—</div>
+      <div class="stat-sub">shares / day</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Prev Close</div>
+      <div class="stat-value" id="stat-prev" style="font-size:1.4rem">—</div>
+      <div class="stat-sub">prior session</div>
+    </div>
+  </div>
+
+  <!-- ── Price Chart ── -->
+  <div class="chart-card">
+    <div class="section-header">
+      <span class="section-title">Price History &amp; Moving Averages</span>
+      <div class="range-btns">
+        <button class="range-btn" data-range="21">1M</button>
+        <button class="range-btn" data-range="63">3M</button>
+        <button class="range-btn" data-range="126">6M</button>
+        <button class="range-btn" data-range="252">1Y</button>
+        <button class="range-btn" data-range="all">All</button>
+      </div>
+    </div>
+    <div id="price-legend" class="legend"></div>
+    <div class="chart-wrap" style="height:360px">
+      <canvas id="chartPrice"></canvas>
+    </div>
+    <p style="font-size:0.7rem;color:var(--text-muted);margin-top:6px">
+      MA 20 &amp; MA 50 are short-to-medium term trend signals. MA 200 marks the long-term trend.
+      Bollinger Bands (±2σ, 20-day) indicate volatility range.
+    </p>
+  </div>
+
+  <!-- ── RSI Chart ── -->
+  <div class="chart-card">
+    <div class="section-header">
+      <span class="section-title">RSI 14 – Relative Strength Index</span>
+      <div style="font-size:0.72rem;color:var(--text-muted)">
+        <span style="color:var(--red)">▬ Overbought (70)</span>
+        &nbsp;&nbsp;
+        <span style="color:var(--green)">▬ Oversold (30)</span>
+      </div>
+    </div>
+    <div class="chart-wrap" style="height:180px">
+      <canvas id="chartRsi"></canvas>
+    </div>
+  </div>
+
+  <!-- ── Two-column: Volume + Monthly Returns ── -->
+  <div class="two-col">
+
+    <!-- Volume -->
+    <div class="chart-card" style="margin-bottom:0">
+      <div class="section-header">
+        <span class="section-title">Monthly Avg Daily Volume</span>
+      </div>
+      <div class="chart-wrap" style="height:260px">
+        <canvas id="chartVolume"></canvas>
+      </div>
+    </div>
+
+    <!-- Monthly Returns -->
+    <div class="chart-card" style="margin-bottom:0">
+      <div class="section-header">
+        <span class="section-title">Monthly Returns (%)</span>
+      </div>
+      <div class="chart-wrap" style="height:260px">
+        <canvas id="chartMonthly"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- spacer -->
+  <div style="height:1.25rem"></div>
+
+  <!-- ── Return Distribution ── -->
+  <div class="chart-card">
+    <div class="section-header">
+      <span class="section-title">Daily Return Distribution</span>
+      <span style="font-size:0.72rem;color:var(--text-muted)">Full dataset · histogram (30 bins)</span>
+    </div>
+    <div class="chart-wrap" style="height:220px">
+      <canvas id="chartDist"></canvas>
+    </div>
+    <p style="font-size:0.7rem;color:var(--text-muted);margin-top:6px">
+      <span style="color:var(--green)">Green</span> = returns &ge;+2% &nbsp;
+      <span style="color:var(--red)">Red</span> = returns &le;-2% &nbsp;
+      <span style="color:var(--blue)">Blue</span> = within ±2%
+    </p>
+  </div>
+
+</main>
+
+<!-- ── Footer ── -->
+<footer>
+  <p>
+    KO · Coca-Cola Stock Analytics Dashboard &nbsp;|&nbsp;
+    Data: 2020–2024 &nbsp;|&nbsp;
+    Charts: <a href="https://www.chartjs.org" style="color:var(--ko-red)">Chart.js</a> &nbsp;|&nbsp;
+    Built with Python · pandas · HTML/CSS · Chart.js · Power BI
+  </p>
+  <p style="margin-top:6px;font-size:0.65rem">
+    This dashboard uses synthetic/historical data for educational purposes. Not financial advice.
+  </p>
+</footer>
+
+<script src="js/dashboard.js"></script>
+</body>
+</html>
